@@ -1,19 +1,17 @@
 """
-Bunny Hop — автоматически прыгает в момент приземления.
-CS 1.6 позволяет bhop: если нажать пробел точно в кадр приземления,
-скорость сохраняется и накапливается.
+Bunny Hop — автопрыжок в момент приземления.
 """
 import threading, time
-import win32api, win32con
-from offsets import RENDER_ORIGIN, CL_ENTITY_SIZE, ENTITY_LIST_BASE
+from offsets import CURSTATE_OFF, CL_ENTITY_SIZE, ENTITY_LIST_BASE
 
-ONGROUND_OFF = 0x2A0 + 0xD4   # curstate.onground
+# onground хранится в curstate (offset 0x130) + 0xD4 внутри entity_state_t
+ONGROUND_OFF = CURSTATE_OFF + 0xD4   # = 0x130 + 0xD4 = 0x204
 
 class Bhop:
     def __init__(self, mem):
-        self.mem     = mem
-        self.enabled = False
-        self._stop   = threading.Event()
+        self.mem      = mem
+        self.enabled  = False
+        self._stop    = threading.Event()
         self._was_air = False
 
     def start(self):
@@ -27,9 +25,14 @@ class Bhop:
         while not self._stop.is_set():
             if self.enabled and self.mem.connected:
                 self._tick()
-            time.sleep(0.005)   # 200 Гц для точности
+            time.sleep(0.005)
 
     def _tick(self):
+        try:
+            import win32api, win32con
+        except ImportError:
+            return
+
         local_idx = self.mem.get_local_index()
         if local_idx < 1:
             return
@@ -39,7 +42,6 @@ class Bhop:
         on_ground = onground != 0
 
         if self._was_air and on_ground:
-            # Приземлились — мгновенный прыжок
             win32api.keybd_event(win32con.VK_SPACE, 0, 0, 0)
             time.sleep(0.015)
             win32api.keybd_event(win32con.VK_SPACE, 0, win32con.KEYEVENTF_KEYUP, 0)
