@@ -1,20 +1,14 @@
 @echo off
 cd /d "%~dp0"
 
-REM Clear proxy vars that VPN sets and breaks pip SSL
-set HTTP_PROXY=
-set HTTPS_PROXY=
-set http_proxy=
-set https_proxy=
-set ALL_PROXY=
-set all_proxy=
-
-echo [1/3] Configuring pip...
-pip config set global.index-url http://pypi.tuna.tsinghua.edu.cn/simple
-pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn
+echo [1/3] Disabling system proxy temporarily...
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f >/dev/null
 
 echo [2/3] Installing dependencies...
-pip install pymem customtkinter pygame pywin32 --no-cache-dir
+pip install pymem customtkinter pygame pywin32 -i http://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn --no-cache-dir
+
+echo [2/3] Restoring system proxy...
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 1 /f >/dev/null
 
 echo.
 echo [3/3] Starting trainer...
