@@ -1,14 +1,18 @@
 @echo off
 cd /d "%~dp0"
 
-echo [1/3] Disabling system proxy temporarily...
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 0 /f >/dev/null
+echo [1/3] Configuring pip to ignore proxy...
+mkdir "%APPDATA%\pip" 2>/dev/null
+(
+echo [global]
+echo index-url = http://pypi.tuna.tsinghua.edu.cn/simple
+echo trusted-host = pypi.tuna.tsinghua.edu.cn
+echo proxy = 
+echo no-cache-dir = true
+) > "%APPDATA%\pip\pip.ini"
 
 echo [2/3] Installing dependencies...
-pip install pymem customtkinter pygame pywin32 -i http://pypi.tuna.tsinghua.edu.cn/simple --trusted-host pypi.tuna.tsinghua.edu.cn --no-cache-dir
-
-echo [2/3] Restoring system proxy...
-reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Internet Settings" /v ProxyEnable /t REG_DWORD /d 1 /f >/dev/null
+pip install pymem customtkinter pygame pywin32
 
 echo.
 echo [3/3] Starting trainer...
